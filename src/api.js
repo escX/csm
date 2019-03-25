@@ -4,10 +4,13 @@ import {Loading, Message}from 'element-ui';
 
 let loading = null;
 
-// axios.defaults.baseURL = 'https://platform.wxmall.org.cn';
-axios.defaults.baseURL = 'https://platform.wchev.com';
 axios.defaults.withCredentials = true;
-
+axios.defaults.baseURL = './';
+if (location.hostname === 'localhost' || location.hostname === '192.168.3.27') {
+  axios.defaults.baseURL = 'https://platform.wxmall.org.cn';
+} else {
+  axios.defaults.baseURL = 'https://platform.wchev.com';
+}
 axios.interceptors.request.use((config) => {
   loading = Loading.service({
     target: store.state.loadingTarget,

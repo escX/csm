@@ -3,7 +3,7 @@
     <div id="tableHeader">
       <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search"></el-input>
     </div>
-    <el-table :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="member_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
+    <el-table border stripe :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="member_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
       <el-table-column type="expand" width="50">
         <template slot-scope="props">
           <el-form inline label-width="100px">
@@ -70,7 +70,7 @@
       <el-table-column prop="city" label="城市" align="center"></el-table-column>
       <el-table-column prop="member_state" label="会员状态" width="100" align="center" :filters="memberState" :filter-multiple="false" column-key="member_state">
         <template slot-scope="scope">
-          <el-tag :type="memberState.find(i=>i.value===scope.row.member_state).tagType">
+          <el-tag size="mini" :type="memberState.find(i=>i.value===scope.row.member_state).tagType">
             {{scope.row.member_state}}
           </el-tag>
         </template>
@@ -78,6 +78,7 @@
       <el-table-column prop="create_time" label="注册时间" width="150" align="center"></el-table-column>
     </el-table>
     <el-pagination
+    v-show="pagination.total/pagination.pageSize>1"
     background
     layout="prev, pager, next"
     :total="pagination.total"
@@ -95,7 +96,7 @@ import {appId} from '@/utils';
 export default {
   data () {
     return {
-      tableHeight: document.getElementById(appId).clientHeight - 120 - 50 - 40,
+      tableHeight: document.getElementById(appId).clientHeight - 120 - 50 - 50,
       list: [],
       pagination: {
         total: 0,
@@ -238,6 +239,7 @@ export default {
 <style lang="less" scoped>
 #tableHeader {
   height: 40px;
+  margin-bottom: 10px;
   .el-input {
     float: right;
     width: 200px;

@@ -1,8 +1,8 @@
-export const loginName = localStorage['LOGINNAME'] || '';
-
 export const setLoginName = name => {
   localStorage['LOGINNAME'] = name;
 }
+
+export const getLoginName = () => localStorage['LOGINNAME'] || '';
 
 export const appId = 'app';
 

@@ -40,14 +40,14 @@
 
 <script>
 import {getImageCode, getSmsCode, handleLogin} from '@/api';
-import {mobilePattern, transformArrayBufferToBase64, loginName, setLoginName} from '@/utils';
+import {mobilePattern, transformArrayBufferToBase64, getLoginName, setLoginName} from '@/utils';
 
 export default {
   data() {
     return {
       dialogVisible: false,
       loginForm: {
-        mobile: loginName,
+        mobile: getLoginName(),
         smsCode: ''
       },
       imageCode: '',

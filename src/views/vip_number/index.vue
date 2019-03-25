@@ -7,11 +7,11 @@
       </el-button-group>
       <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search"></el-input>
     </div>
-    <el-table ref="filterTable" :data="list[pageIndex]" :height="tableHeight" @filter-change="handleFilter">
+    <el-table border stripe ref="filterTable" :data="list[pageIndex]" :height="tableHeight" @filter-change="handleFilter">
       <el-table-column prop="vip_no" label="会员编号" width="100" align="center"></el-table-column>
       <el-table-column prop="state" label="状态" width="100" align="center" :filters="state" :filter-multiple="false" column-key="state">
         <template slot-scope="scope">
-          <el-tag :type="state.find(i=>i.value===scope.row.state).tagType">
+          <el-tag size="mini" :type="state.find(i=>i.value===scope.row.state).tagType">
             {{scope.row.state}}
           </el-tag>
         </template>
@@ -21,13 +21,13 @@
       <el-table-column prop="purchase_user" label="购买者" width="100" align="center"></el-table-column>
       <el-table-column prop="is_publish" label="发布状态" width="100" align="center">
         <template slot-scope="scope">
-          <el-tag :type="publishState.find(i=>i.value===scope.row.is_publish).tagType">
+          <el-tag size="mini" :type="publishState.find(i=>i.value===scope.row.is_publish).tagType">
             {{publishState.find(i=>i.value===scope.row.is_publish).text}}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="publish_time" label="发布时间" align="center"></el-table-column>
-      <el-table-column fixed="right" label="操作" width="100">
+      <el-table-column fixed="right" label="操作" width="100" align="center">
         <template slot-scope="scope">
           <div v-if="scope.row.state==='待申请'">
             <el-button v-if="scope.row.is_publish==0" @click="handlePublish('1',scope.row.vip_no)" type="text">发布</el-button>
@@ -37,6 +37,7 @@
       </el-table-column>
     </el-table>
     <el-pagination
+    v-show="pagination.total/pagination.pageSize>1"
     background
     layout="prev, pager, next"
     :total="pagination.total"
@@ -87,11 +88,12 @@
 <script>
 import {getLastestVipNumber, getVipNumberList, genrateVipNumber, publishVipNumber} from '@/api';
 import {appId} from '@/utils';
+import { setTimeout } from 'timers';
 
 export default {
   data () {
     return {
-      tableHeight: document.getElementById(appId).clientHeight - 120 - 50 - 40,
+      tableHeight: document.getElementById(appId).clientHeight - 120 - 50 - 50,
       list: [],
       pagination: {
         total: 0,
@@ -171,20 +173,18 @@ export default {
         begin_no: vip_no,
         end_no: vip_no
       }).then(data => {
-        let message = '';
-        let type = 'success';
         if (data.code === 1) {
-          if (is_publish == 1) {
-            message = '发布成功';
-          } else {
-            message = '取消发布成功';
-          }
-          this.list[this.pageIndex].find(item => item.vip_no === vip_no).is_publish = is_publish;
+          this.$message({
+            message: is_publish==1 ? '发布成功' : '取消发布成功',
+            type: 'success'
+          });
+          this.getVipNumberList();
         } else {
-          type = 'error';
-          message = data.msg;
+          this.$message({
+            message: data.msg,
+            type: 'error'
+          });
         }
-        this.$message({message, type});
       });
     },
     genrateNumber() {
@@ -222,20 +222,24 @@ export default {
       });
     },
     confirmPublish() {
+      if (this.is_publish === '') {
+        this.$message({
+          message: '请选择发布或者取消发布',
+          type: 'error'
+        });
+        return false;
+      }
       this.$setLoadingTarget('#publishDialog .el-dialog');
       publishVipNumber({
         is_publish: this.is_publish,
         begin_no: this.begin_no,
         end_no: this.end_no
       }).then(data => {
-        let message = '';
-        let type = 'success';
         if (data.code === 1) {
-          if (this.is_publish == 1) {
-            message = '批量发布成功';
-          } else {
-            message = '批量取消发布成功';
-          }
+          this.$message({
+            message: this.is_publish==1 ? '批量发布成功' : '批量取消发布成功',
+            type: 'success'
+          });
           this.publishDialogVisible = false;
           this.keyword = '';
           this.selectedState = '';
@@ -243,10 +247,11 @@ export default {
           this.resetTable();
           this.getVipNumberList();
         } else {
-          type = 'error';
-          message = data.msg;
+          this.$message({
+            message: data.msg,
+            type: 'error'
+          });
         }
-        this.$message({message, type});
       });
     }
   }
@@ -256,6 +261,7 @@ export default {
 <style lang="less" scoped>
 #tableHeader {
   height: 40px;
+  margin-bottom: 10px;
   .el-input {
     float: right;
     width: 200px;

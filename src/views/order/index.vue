@@ -3,7 +3,7 @@
     <div id="tableHeader">
       <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search"></el-input>
     </div>
-    <el-table :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="order_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
+    <el-table border stripe :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="order_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
       <el-table-column type="expand" width="50">
         <template slot-scope="props">
           <el-form inline label-width="100px">
@@ -41,14 +41,14 @@
       <el-table-column prop="total_fee" label="订单金额" width="100" align="center"></el-table-column>
       <el-table-column prop="is_pay" label="支付状态" width="100" align="center" column-key="is_pay" :filters="payState" :filter-multiple="false">
         <template slot-scope="scope">
-          <el-tag :type="payState.find(i=>i.value==scope.row.is_pay).tagType">
+          <el-tag size="mini" :type="payState.find(i=>i.value==scope.row.is_pay).tagType">
             {{payState.find(i=>i.value==scope.row.is_pay).text}}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="state" label="订单状态" width="100" align="center" column-key="state" :filters="orderState" :filter-multiple="false">
         <template slot-scope="scope">
-          <el-tag :type="orderState.find(i=>i.value===scope.row.state).tagType">
+          <el-tag size="mini" :type="orderState.find(i=>i.value===scope.row.state).tagType">
             {{scope.row.state}}
           </el-tag>
         </template>
@@ -57,13 +57,14 @@
       <el-table-column prop="mobile" label="联系电话" width="120" align="center"></el-table-column>
       <el-table-column prop="buyer_msg" label="买家留言" align="center"></el-table-column>
       <el-table-column prop="create_time" label="下单时间" width="100" align="center"></el-table-column>
-      <el-table-column fixed="right" label="操作" width="50">
+      <el-table-column fixed="right" label="操作" width="50" align="center">
         <template slot-scope="scope">
           <el-button v-if="scope.row.state==='待发货'" @click="handleOperate(scope.row.order_id)" type="text">发货</el-button>
         </template>
       </el-table-column>
     </el-table>
     <el-pagination
+    v-show="pagination.total/pagination.pageSize>1"
     background
     layout="prev, pager, next"
     :total="pagination.total"
@@ -81,7 +82,7 @@ import {appId} from '@/utils';
 export default {
   data () {
     return {
-      tableHeight: document.getElementById(appId).clientHeight - 120 - 50 - 40,
+      tableHeight: document.getElementById(appId).clientHeight - 120 - 50 - 50,
       list: [],
       pagination: {
         total: 0,
@@ -259,6 +260,7 @@ export default {
 <style lang="less" scoped>
 #tableHeader {
   height: 40px;
+  margin-bottom: 10px;
   .el-input {
     float: right;
     width: 200px;

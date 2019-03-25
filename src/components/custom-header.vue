@@ -16,13 +16,13 @@
 </template>
 
 <script>
-import {loginName} from '@/utils';
+import {getLoginName} from '@/utils';
 import {handleLogout} from '@/api';
 
 export default {
   data() {
     return {
-      loginName
+      loginName: getLoginName()
     }
   },
   methods: {

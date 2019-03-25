@@ -9,6 +9,27 @@ html, body {
   font-size: 14px;
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{
+    -webkit-appearance: none;
+}
+
+input[type="number"] {
+  -moz-appearance:textfield;
+}
+
 #app {
   height: 100%;
+}
+
+.el-table td, .el-table th {
+  padding: 9px 0!important;
+}
+
+.el-table th{
+  background-color: #f5f7fa!important;
+}
+
+.el-table__body .el-form-item {
+  margin-bottom: 15px;
 }
