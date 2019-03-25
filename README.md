@@ -1,4 +1,4 @@
-# platform
+# csm
 
 ## Project setup
 ```
