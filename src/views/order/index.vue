@@ -1,7 +1,7 @@
 <template>
   <div id="nodeOrderTable">
     <div id="tableHeader">
-      <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search"></el-input>
+      <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search" prefix-icon="el-icon-search"></el-input>
     </div>
     <el-table border stripe :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="order_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
       <el-table-column type="expand" width="50">

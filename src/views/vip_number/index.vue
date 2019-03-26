@@ -5,7 +5,7 @@
         <el-button type="primary" @click="genrateNumber">生成会员编号</el-button>
         <el-button type="primary" @click="publishDialogVisible = true">批量发布 / 取消发布</el-button>
       </el-button-group>
-      <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search"></el-input>
+      <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search" prefix-icon="el-icon-search"></el-input>
     </div>
     <el-table border stripe ref="filterTable" :data="list[pageIndex]" :height="tableHeight" @filter-change="handleFilter">
       <el-table-column prop="vip_no" label="会员编号" width="100" align="center"></el-table-column>
