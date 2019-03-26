@@ -8,7 +8,7 @@ axios.defaults.withCredentials = true;
 if (location.hostname === 'localhost' || location.hostname === '192.168.3.27') {
   axios.defaults.baseURL = 'https://platform.wxmall.org.cn';
 } else {
-  axios.defaults.baseURL = 'https://platform.wchev.com';
+  axios.defaults.baseURL = location.origin;
 }
 
 axios.interceptors.request.use((config) => {
