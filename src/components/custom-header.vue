@@ -32,15 +32,8 @@ export default {
       }
     },
     handleLogout() {
-      handleLogout().then(data => {
-        if (data.code === 1) {
-          this.$router.replace({name: 'login'});
-        } else {
-          this.$message({
-            message: data.msg,
-            type: 'error'
-          });
-        }
+      handleLogout().then(() => {
+        this.$router.replace({name: 'login'});
       });
     }
   }

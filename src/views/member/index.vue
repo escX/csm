@@ -62,7 +62,8 @@
           <el-button type="primary" @click="updateMember" class="updataBtn">更新</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="姓名" width="100" align="center"></el-table-column>
+      <el-table-column prop="member_id" label="序号" width="50" align="center"></el-table-column>
+      <el-table-column prop="name" label="姓名" width="120" align="center"></el-table-column>
       <el-table-column prop="vip_no" label="会员编号" width="100" align="center"></el-table-column>
       <el-table-column prop="sex" label="性别" width="50" align="center"></el-table-column>
       <el-table-column prop="mobile" label="手机号码" width="120" align="center"></el-table-column>

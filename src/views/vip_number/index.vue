@@ -88,7 +88,6 @@
 <script>
 import {getLastestVipNumber, getVipNumberList, genrateVipNumber, publishVipNumber} from '@/api';
 import {appId} from '@/utils';
-import { setTimeout } from 'timers';
 
 export default {
   data () {
