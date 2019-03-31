@@ -16,10 +16,10 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="book_user" label="预订者" width="100" align="center"></el-table-column>
+      <el-table-column prop="book_user" label="预订者" width="170" align="center"></el-table-column>
       <el-table-column prop="book_time" label="预订时间" align="center"></el-table-column>
-      <el-table-column prop="purchase_user" label="购买者" width="100" align="center"></el-table-column>
-      <el-table-column prop="is_publish" label="发布状态" width="100" align="center">
+      <el-table-column prop="purchase_user" label="购买者" width="170" align="center"></el-table-column>
+      <el-table-column prop="is_publish" label="发布状态" width="100" align="center" :filters="publishState" :filter-multiple="false" column-key="is_publish">
         <template slot-scope="scope">
           <el-tag size="mini" :type="publishState.find(i=>i.value===scope.row.is_publish).tagType">
             {{publishState.find(i=>i.value===scope.row.is_publish).text}}
@@ -110,6 +110,7 @@ export default {
         {text:'已发布', value:'1', tagType:'success'}
       ],
       selectedState: '',
+      selectedPublishState: '',
       publishDialogVisible: false,
       genrateDialogVisible: false,
       numberCount: 100,
@@ -133,6 +134,7 @@ export default {
       getVipNumberList({
         keyword: this.keyword,
         state: this.selectedState,
+        is_publish: this.selectedPublishState,
         page: this.pagination.page,
         page_size: this.pagination.pageSize
       }).then(data => {
@@ -149,10 +151,22 @@ export default {
       }
     },
     handleFilter(filters) {
-      this.selectedState = '';
-      if (filters.state instanceof Array && filters.state[0] !== undefined) {
-        this.selectedState = filters.state[0];
+      if (filters.state instanceof Array) {
+        if (filters.state[0] !== undefined) {
+          this.selectedState = filters.state[0];
+        } else {
+          this.selectedState = '';
+        }
       }
+
+      if (filters.is_publish instanceof Array) {
+        if (filters.is_publish[0] !== undefined) {
+          this.selectedPublishState = filters.is_publish[0];
+        } else {
+          this.selectedPublishState = '';
+        }
+      }
+
       this.resetTable();
       this.getVipNumberList();
     },
@@ -209,6 +223,7 @@ export default {
           this.genrateDialogVisible = false;
           this.keyword = '';
           this.selectedState = '';
+          this.selectedPublishState = '';
           this.$refs.filterTable.clearFilter();
           this.resetTable();
           this.getVipNumberList();
@@ -242,6 +257,7 @@ export default {
           this.publishDialogVisible = false;
           this.keyword = '';
           this.selectedState = '';
+          this.selectedPublishState = '';
           this.$refs.filterTable.clearFilter();
           this.resetTable();
           this.getVipNumberList();

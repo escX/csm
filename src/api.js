@@ -23,11 +23,12 @@ axios.interceptors.request.use((config) => {
 
 axios.interceptors.response.use((response) => {
   loading.close();
-  if (response.data.code == 401) {
+  if (response.data instanceof Object && response.data.code === 401) {
     instance.$router.replace({name: 'login'});
-  } else {
-    return response.data;
+    return false;
   }
+
+  return response.data;
 }, (error) => {
   loading.close();
   Message.error({
@@ -103,11 +104,12 @@ export const getLastestVipNumber = () => {
 };
 
 // 获取会员编号列表
-export const getVipNumberList = ({keyword,state,page,page_size}) => {
+export const getVipNumberList = ({keyword,state,is_publish,page,page_size}) => {
   return axios.get('/vip_no/list_vip_no', {
     params: {
       keyword,
       state,
+      is_publish,
       page,
       page_size
     }

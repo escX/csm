@@ -207,14 +207,8 @@ export default {
     updateMember() {
       this.$confirm('更新数据后不能复原，确定要更新？').then(() => {
         const expandRow = this.list[this.pageIndex].find(item => item.member_id === this.expandId);
-        if (!(expandRow instanceof Object && expandRow.detail.member_id !== undefined)) {
-          this.$message({
-            message: '没有可以更新的数据',
-            type: 'warning'
-          });
-          return false;
-        }
         const params = {...expandRow.detail};
+
         this.updateExclude.forEach(item => {
           delete params[item];
         })
