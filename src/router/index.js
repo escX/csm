@@ -6,7 +6,7 @@ import store from '@/store'
 Vue.use(Router)
 
 const router = new Router({
-  mode: 'hash',
+  mode: 'hitory',
   base: process.env.BASE_URL,
   routes
 })
