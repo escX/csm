@@ -15,7 +15,7 @@ Vue.prototype.$setLoadingTarget = loadingTarget => {
   store.commit('setLoadingTarget', {loadingTarget});
 };
 
-new Vue({
+export default new Vue({
   router,
   store,
   render: h => h(App)

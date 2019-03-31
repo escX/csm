@@ -1,7 +1,7 @@
+import instance from './main';
 import axios from 'axios';
 import store from '@/store';
 import {Loading, Message}from 'element-ui';
-
 let loading = null;
 
 axios.defaults.withCredentials = true;
@@ -23,7 +23,11 @@ axios.interceptors.request.use((config) => {
 
 axios.interceptors.response.use((response) => {
   loading.close();
-  return response.data;
+  if (response.data.code == 401) {
+    instance.$router.replace({name: 'login'});
+  } else {
+    return response.data;
+  }
 }, (error) => {
   loading.close();
   Message.error({
