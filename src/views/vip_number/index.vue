@@ -37,13 +37,14 @@
       </el-table-column>
     </el-table>
     <el-pagination
-    v-show="pagination.total/pagination.pageSize>1"
     background
-    layout="prev, pager, next"
+    layout="sizes, prev, pager, next"
+    :page-sizes="pagination.pageSizes"
     :total="pagination.total"
     :page-size="pagination.pageSize"
     :current-page.sync="pagination.page"
-    @current-change="changePage">
+    @current-change="changePage"
+    @size-change="changeSize">
     </el-pagination>
 
     <el-dialog id="genrateDialog" width="400px" title="生成会员编号" :visible.sync="genrateDialogVisible">
@@ -96,6 +97,7 @@ export default {
       list: [],
       pagination: {
         total: 0,
+        pageSizes: [20, 50, 100, 200],
         pageSize: 20,
         page: 1
       },
@@ -150,6 +152,10 @@ export default {
         this.getVipNumberList();
       }
     },
+    changeSize(size) {
+      this.pagination.pageSize = size;
+      this.resetTable();
+    },
     handleFilter(filters) {
       if (filters.state instanceof Array) {
         if (filters.state[0] !== undefined) {
@@ -168,16 +174,15 @@ export default {
       }
 
       this.resetTable();
-      this.getVipNumberList();
     },
     search() {
       this.resetTable();
-      this.getVipNumberList();
     },
     resetTable() {
       this.pagination.total = 0;
       this.pagination.page = 1;
       this.list = [];
+      this.getVipNumberList();
     },
     handlePublish(is_publish, vip_no) {
       this.$setLoadingTarget('#nodeVipNumberTable');
@@ -226,7 +231,6 @@ export default {
           this.selectedPublishState = '';
           this.$refs.filterTable.clearFilter();
           this.resetTable();
-          this.getVipNumberList();
         } else {
           this.$message({
             message: data.msg,
@@ -260,7 +264,6 @@ export default {
           this.selectedPublishState = '';
           this.$refs.filterTable.clearFilter();
           this.resetTable();
-          this.getVipNumberList();
         } else {
           this.$message({
             message: data.msg,

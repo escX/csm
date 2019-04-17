@@ -1,6 +1,7 @@
 <template>
   <div id="nodeOrderTable">
     <div id="tableHeader">
+      <el-button class="rightButton" type="primary" @click="exportData">导出当前页面数据</el-button>
       <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search" prefix-icon="el-icon-search"></el-input>
     </div>
     <el-table border stripe :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="order_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
@@ -64,20 +65,40 @@
       </el-table-column>
     </el-table>
     <el-pagination
-    v-show="pagination.total/pagination.pageSize>1"
     background
-    layout="prev, pager, next"
+    layout="sizes, prev, pager, next"
+    :page-sizes="pagination.pageSizes"
     :total="pagination.total"
     :page-size="pagination.pageSize"
     :current-page.sync="pagination.page"
-    @current-change="changePage">
+    @current-change="changePage"
+    @size-change="changeSize">
     </el-pagination>
   </div>
 </template>
 
 <script>
 import {getOrderList, getOrderInfo, saveOrderInfo} from '@/api';
-import {appId} from '@/utils';
+import {appId, exportXLSX, getStamp} from '@/utils';
+
+const tableHeadName = {
+  receive_by: '收件人',
+  mobile: '联系电话',
+  province: '省份',
+  city: '城市',
+  area: '区县',
+  address: '详细地址',
+  express_company: '物流公司',
+  express_no: '快递单号',
+  order_no: '订单编号',
+  trade_no: '交易流水号',
+  vip_no: '会员编号',
+  total_fee: '订单金额',
+  is_pay: '支付状态',
+  state: '订单状态',
+  buyer_msg: '买家留言',
+  create_time: '下单时间'
+};
 
 export default {
   data () {
@@ -86,6 +107,7 @@ export default {
       list: [],
       pagination: {
         total: 0,
+        pageSizes: [20, 50, 100, 200],
         pageSize: 20,
         page: 1
       },
@@ -145,6 +167,10 @@ export default {
         this.getOrderList();
       }
     },
+    changeSize(size) {
+      this.pagination.pageSize = size;
+      this.resetTable();
+    },
     handleFilter(filters) {
       if (filters.state instanceof Array) {
         if (filters.state[0] !== undefined) {
@@ -163,16 +189,15 @@ export default {
       }
 
       this.resetTable();
-      this.getOrderList();
     },
     search() {
       this.resetTable();
-      this.getOrderList();
     },
     resetTable() {
       this.pagination.total = 0;
       this.pagination.page = 1;
       this.list = [];
+      this.getOrderList();
     },
     handleExpand(row, expandedRows) {
       this.expandKeys = [];
@@ -246,6 +271,24 @@ export default {
           this.$message({message, type});
         });
       }).catch(()=>{});
+    },
+    exportData() {
+      const currentList = this.list[this.pageIndex];
+      const filedata = currentList.map(item => {
+        const newItem = Object.create(null);
+        for (let i in item) {
+          const key = tableHeadName[i];
+          if (key !== undefined) {
+            newItem[key] = item[i];
+          }
+        }
+        return newItem;
+      });
+
+      exportXLSX({
+        filename: `订单${getStamp()}`,
+        filedata: JSON.parse(JSON.stringify(filedata))
+      });
     }
   }
 }
@@ -258,6 +301,10 @@ export default {
   .el-input {
     float: right;
     width: 200px;
+  }
+  .rightButton {
+    float: right;
+    margin-left: 20px;
   }
 }
 

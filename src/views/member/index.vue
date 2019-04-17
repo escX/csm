@@ -1,6 +1,7 @@
 <template>
   <div id="nodeMemberTable">
     <div id="tableHeader">
+      <el-button class="rightButton" type="primary" @click="exportData">导出当前页面数据</el-button>
       <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search" prefix-icon="el-icon-search"></el-input>
     </div>
     <el-table border stripe :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="member_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
@@ -79,20 +80,44 @@
       <el-table-column prop="create_time" label="注册时间" width="150" align="center"></el-table-column>
     </el-table>
     <el-pagination
-    v-show="pagination.total/pagination.pageSize>1"
     background
-    layout="prev, pager, next"
+    layout="sizes, prev, pager, next"
+    :page-sizes="pagination.pageSizes"
     :total="pagination.total"
-    :page-size="pagination.pageSize"
+    :page-size.sync="pagination.pageSize"
     :current-page.sync="pagination.page"
-    @current-change="changePage">
+    @current-change="changePage"
+    @size-change="changeSize">
     </el-pagination>
   </div>
 </template>
 
 <script>
 import {getMemberList, getMemberInfo, saveMemberInfo} from '@/api';
-import {appId} from '@/utils';
+import {appId, exportXLSX, getStamp} from '@/utils';
+
+const tableHeadName = {
+  member_id: '序号',
+  member_state: '会员状态',
+  create_time: '注册时间',
+  name: '姓名',
+  sex: '性别',
+  birthday: '出生日期',
+  province: '省份',
+  city: '城市',
+  area: '区县',
+  address: '详细地址',
+  mobile: '手机号码',
+  qq: 'QQ',
+  mail: '电子邮箱',
+  car_type: '汽车型号',
+  car_color: '汽车颜色',
+  car_buy_date: '提车日期',
+  car_4s_shop: '提车4S店',
+  car_number: '车牌',
+  car_home_nick: '汽车之家昵称',
+  car_club_name: '已加入车友会'
+};
 
 export default {
   data () {
@@ -101,6 +126,7 @@ export default {
       list: [],
       pagination: {
         total: 0,
+        pageSizes: [20, 50, 100, 200],
         pageSize: 20,
         page: 1
       },
@@ -153,22 +179,25 @@ export default {
         this.getMemberList();
       }
     },
+    changeSize(size) {
+      this.pagination.pageSize = size;
+      this.resetTable();
+    },
     handleFilter(filters) {
       this.selectedMemberState = '';
       if (filters.member_state instanceof Array && filters.member_state[0] !== undefined) {
         this.selectedMemberState = filters.member_state[0];
       }
       this.resetTable();
-      this.getMemberList();
     },
     search() {
       this.resetTable();
-      this.getMemberList();
     },
     resetTable() {
       this.pagination.total = 0;
       this.pagination.page = 1;
       this.list = [];
+      this.getMemberList();
     },
     handleExpand(row, expandedRows) {
       this.expandKeys = [];
@@ -226,6 +255,24 @@ export default {
           this.$message({message, type});
         });
       }).catch(()=>{});
+    },
+    exportData() {
+      const currentList = this.list[this.pageIndex];
+      const filedata = currentList.map(item => {
+        const newItem = Object.create(null);
+        for (let i in item) {
+          const key = tableHeadName[i];
+          if (key !== undefined) {
+            newItem[key] = item[i];
+          }
+        }
+        return newItem;
+      });
+
+      exportXLSX({
+        filename: `会员${getStamp()}`,
+        filedata: JSON.parse(JSON.stringify(filedata))
+      });
     }
   }
 }
@@ -238,6 +285,10 @@ export default {
   .el-input {
     float: right;
     width: 200px;
+  }
+  .rightButton {
+    float: right;
+    margin-left: 20px;
   }
 }
 
