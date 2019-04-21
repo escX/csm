@@ -56,7 +56,7 @@ export const getSmsCode = ({mobile, imageCode}) => {
 };
 
 // 登录
-export const handleLogin = ({ mobile, smsCode }) => {
+export const handleLogin = ({mobile, smsCode}) => {
   return axios.get('/common/login', {
     params: {
       mobile,
@@ -95,6 +95,13 @@ export const getMemberInfo = ({member_id}) => {
 export const saveMemberInfo = (params) => {
   return axios.post('/member/save_member', {
     params
+  });
+};
+
+// 获取会员导出数据
+export const getMemberExport = ({keyword}) => {
+  return axios.get('/member/list_export_order', {
+    keyword
   });
 };
 
@@ -162,5 +169,14 @@ export const getOrderInfo = ({order_id}) => {
 export const saveOrderInfo = (params) => {
   return axios.post('/order/save_order', {
     params
+  });
+};
+
+// 获取订单导出数据
+export const getOrderExport = ({keyword, is_pay, state}) => {
+  return axios.get('/order/list_export_order', {
+    keyword,
+    is_pay,
+    state
   });
 };

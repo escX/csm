@@ -1,7 +1,7 @@
 <template>
   <div id="nodeMemberTable">
     <div id="tableHeader">
-      <el-button class="rightButton" type="primary" @click="exportData">导出当前页面数据</el-button>
+      <el-button class="rightButton" type="primary" @click="exportData">导出数据</el-button>
       <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search" prefix-icon="el-icon-search"></el-input>
     </div>
     <el-table border stripe :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="member_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
@@ -93,14 +93,14 @@
 </template>
 
 <script>
-import {getMemberList, getMemberInfo, saveMemberInfo} from '@/api';
+import {getMemberList, getMemberInfo, saveMemberInfo, getMemberExport} from '@/api';
 import {appId, exportXLSX, getStamp} from '@/utils';
 
 const tableHeadName = {
   member_id: '序号',
   member_state: '会员状态',
-  create_time: '注册时间',
-  name: '姓名',
+  create_time: '申请会员日期',
+  name: '会员姓名',
   sex: '性别',
   birthday: '出生日期',
   province: '省份',
@@ -108,15 +108,15 @@ const tableHeadName = {
   area: '区县',
   address: '详细地址',
   mobile: '手机号码',
-  qq: 'QQ',
+  qq: 'QQ号码',
   mail: '电子邮箱',
   car_type: '汽车型号',
   car_color: '汽车颜色',
   car_buy_date: '提车日期',
   car_4s_shop: '提车4S店',
-  car_number: '车牌',
+  car_number: '车牌号码',
   car_home_nick: '汽车之家昵称',
-  car_club_name: '已加入车友会'
+  car_club_name: '已加入车友会名称'
 };
 
 export default {
@@ -257,21 +257,34 @@ export default {
       }).catch(()=>{});
     },
     exportData() {
-      const currentList = this.list[this.pageIndex];
-      const filedata = currentList.map(item => {
-        const newItem = Object.create(null);
-        for (let i in item) {
-          const key = tableHeadName[i];
-          if (key !== undefined) {
-            newItem[key] = item[i];
-          }
-        }
-        return newItem;
-      });
+      this.$setLoadingTarget('#nodeMemberTable');
+      getMemberExport({
+        keyword: this.keyword
+      }).then(data => {
+        if (data.code === 1) {
+          const filedata = data.data.map(item => {
+            const newItem = Object.create(null);
+            for (let i in item) {
+              const key = tableHeadName[i];
+              if (key !== undefined) {
+                newItem[key] = item[i];
+              } else {
+                newItem[i] = item[i];
+              }
+            }
+            return newItem;
+          });
 
-      exportXLSX({
-        filename: `会员${getStamp()}`,
-        filedata: JSON.parse(JSON.stringify(filedata))
+          exportXLSX({
+            filename: `会员${getStamp()}`,
+            filedata: JSON.parse(JSON.stringify(filedata))
+          });
+        } else {
+          this.$message({
+            type: 'error',
+            message: data.msg
+          });
+        }
       });
     }
   }

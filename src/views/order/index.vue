@@ -1,7 +1,7 @@
 <template>
   <div id="nodeOrderTable">
     <div id="tableHeader">
-      <el-button class="rightButton" type="primary" @click="exportData">导出当前页面数据</el-button>
+      <el-button class="rightButton" type="primary" @click="exportData">导出数据</el-button>
       <el-input v-model.trim="keyword" placeholder="输入关键字搜索" clearable @keyup.enter.native="search" @clear="search" prefix-icon="el-icon-search"></el-input>
     </div>
     <el-table border stripe :data="list[pageIndex]" :height="tableHeight" :row-class-name="getRowClassName" row-key="order_id" :expand-row-keys="expandKeys" @expand-change="handleExpand" @filter-change="handleFilter">
@@ -78,17 +78,17 @@
 </template>
 
 <script>
-import {getOrderList, getOrderInfo, saveOrderInfo} from '@/api';
+import {getOrderList, getOrderInfo, saveOrderInfo, getOrderExport} from '@/api';
 import {appId, exportXLSX, getStamp} from '@/utils';
 
 const tableHeadName = {
   receive_by: '收件人',
-  mobile: '联系电话',
+  mobile: '收件人手机号码',
   province: '省份',
   city: '城市',
   area: '区县',
   address: '详细地址',
-  express_company: '物流公司',
+  express_company: '快递公司名称',
   express_no: '快递单号',
   order_no: '订单编号',
   trade_no: '交易流水号',
@@ -97,7 +97,7 @@ const tableHeadName = {
   is_pay: '支付状态',
   state: '订单状态',
   buyer_msg: '买家留言',
-  create_time: '下单时间'
+  order_time: '下单时间'
 };
 
 export default {
@@ -273,21 +273,36 @@ export default {
       }).catch(()=>{});
     },
     exportData() {
-      const currentList = this.list[this.pageIndex];
-      const filedata = currentList.map(item => {
-        const newItem = Object.create(null);
-        for (let i in item) {
-          const key = tableHeadName[i];
-          if (key !== undefined) {
-            newItem[key] = item[i];
-          }
-        }
-        return newItem;
-      });
+      this.$setLoadingTarget('#nodeOrderTable');
+      getOrderExport({
+        keyword: this.keyword,
+        is_pay: this.selectedPayState,
+        state: this.selectedOrderState
+      }).then(data => {
+        if (data.code === 1) {
+          const filedata = data.data.map(item => {
+            const newItem = Object.create(null);
+            for (let i in item) {
+              const key = tableHeadName[i];
+              if (key !== undefined) {
+                newItem[key] = item[i];
+              } else {
+                newItem[i] = item[i];
+              }
+            }
+            return newItem;
+          });
 
-      exportXLSX({
-        filename: `订单${getStamp()}`,
-        filedata: JSON.parse(JSON.stringify(filedata))
+          exportXLSX({
+            filename: `订单${getStamp()}`,
+            filedata: JSON.parse(JSON.stringify(filedata))
+          });
+        } else {
+          this.$message({
+            type: 'error',
+            message: data.msg
+          });
+        }
       });
     }
   }
