@@ -99,7 +99,9 @@ export const saveMemberInfo = (params) => {
 // 获取会员导出数据
 export const getMemberExport = ({keyword}) => {
   return axios.get('/member/list_export_order', {
-    keyword
+    params: {
+      keyword
+    }
   });
 };
 
@@ -171,8 +173,10 @@ export const saveOrderInfo = (params) => {
 // 获取订单导出数据
 export const getOrderExport = ({keyword, is_pay, state}) => {
   return axios.get('/order/list_export_order', {
-    keyword,
-    is_pay,
-    state
+    params: {
+      keyword,
+      is_pay,
+      state
+    }
   });
 };
