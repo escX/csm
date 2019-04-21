@@ -98,6 +98,7 @@ import {appId, exportXLSX, getStamp} from '@/utils';
 
 const tableHeadName = {
   member_id: '序号',
+  vip_no: '会员编号',
   member_state: '会员状态',
   create_time: '申请会员日期',
   name: '会员姓名',
@@ -262,6 +263,14 @@ export default {
         keyword: this.keyword
       }).then(data => {
         if (data.code === 1) {
+          if (data.data.length === 0) {
+            this.$message({
+              type: 'error',
+              message: '没有可以导出的数据'
+            });
+            return false;
+          }
+
           const filedata = data.data.map(item => {
             const newItem = Object.create(null);
             for (let i in item) {

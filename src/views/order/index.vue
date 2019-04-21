@@ -280,6 +280,14 @@ export default {
         state: this.selectedOrderState
       }).then(data => {
         if (data.code === 1) {
+          if (data.data.length === 0) {
+            this.$message({
+              type: 'error',
+              message: '没有可以导出的数据'
+            });
+            return false;
+          }
+
           const filedata = data.data.map(item => {
             const newItem = Object.create(null);
             for (let i in item) {

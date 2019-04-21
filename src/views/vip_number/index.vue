@@ -104,7 +104,7 @@ export default {
       keyword: '',
       state: [
         {text:'待申请', value:'待申请', tagType:'warning'},
-        {text:'已预定', value:'已预定', tagType:'info'},
+        {text:'已预订', value:'已预订', tagType:'info'},
         {text:'已售出', value:'已售出', tagType:'success'}
       ],
       publishState: [

@@ -93,9 +93,7 @@ export const getMemberInfo = ({member_id}) => {
 
 // 保存会员信息
 export const saveMemberInfo = (params) => {
-  return axios.post('/member/save_member', {
-    params
-  });
+  return axios.post('/member/save_member', params);
 };
 
 // 获取会员导出数据
@@ -167,9 +165,7 @@ export const getOrderInfo = ({order_id}) => {
 
 // 保存订单信息
 export const saveOrderInfo = (params) => {
-  return axios.post('/order/save_order', {
-    params
-  });
+  return axios.post('/order/save_order', params);
 };
 
 // 获取订单导出数据
