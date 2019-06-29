@@ -27,7 +27,14 @@
               <el-input v-model.trim="props.row.detail.address"></el-input>
             </el-form-item>
             <el-form-item label="物流公司" prop="express_company">
-              <el-input v-model.trim="props.row.detail.express_company"></el-input>
+              <el-select v-model="props.row.detail.express_company" placeholder="请选择">
+                <el-option
+                  v-for="item in computed_express_options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
             </el-form-item>
             <el-form-item label="快递单号" prop="express_no">
               <el-input v-model.trim="props.row.detail.express_no"></el-input>
@@ -36,10 +43,23 @@
           <el-button type="primary" @click="updateOrder" class="updataBtn">更新</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="order_no" label="订单编号" width="100" align="center"></el-table-column>
-      <el-table-column prop="trade_no" label="交易流水号" width="120" align="center"></el-table-column>
-      <el-table-column prop="vip_no" label="会员编号" width="100" align="center"></el-table-column>
-      <el-table-column prop="total_fee" label="订单金额" width="100" align="center"></el-table-column>
+      <el-table-column prop="order_no" label="订单编号" width="90" align="center"></el-table-column>
+      <el-table-column prop="trade_no" label="交易流水号" width="110" align="center"></el-table-column>
+      <el-table-column prop="vip_no" label="会员编号" width="85" align="center"></el-table-column>
+      <el-table-column prop="order_info" label="订单信息" width="290" align="center">
+        <template slot-scope="scope">
+          <div v-for="(item, index) in scope.row.package_info" :key="index" class="package_inner">
+            <div class="package_left">{{item.package_name}}：</div>
+            <div class="package_right">
+              <div v-for="(jtem, jndex) in item.product_list" :key="jndex" class="product_inner">
+                <div class="product_left">{{jtem.product_name}}</div>
+                <div class="product_right">*{{jtem.qty}}</div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="total_fee" label="订单金额" width="85" align="center"></el-table-column>
       <el-table-column prop="is_pay" label="支付状态" width="100" align="center" column-key="is_pay" :filters="payState" :filter-multiple="false">
         <template slot-scope="scope">
           <el-tag size="mini" :type="payState.find(i=>i.value==scope.row.is_pay).tagType">
@@ -55,12 +75,23 @@
         </template>
       </el-table-column>
       <el-table-column prop="receive_by" label="收件人" width="100" align="center"></el-table-column>
-      <el-table-column prop="mobile" label="联系电话" width="120" align="center"></el-table-column>
-      <el-table-column prop="buyer_msg" label="买家留言" align="center"></el-table-column>
+      <el-table-column prop="mobile" label="联系电话" width="115" align="center"></el-table-column>
+      <el-table-column prop="buyer_msg" label="买家留言" width="100" align="center"></el-table-column>
       <el-table-column prop="create_time" label="下单时间" width="100" align="center"></el-table-column>
       <el-table-column fixed="right" label="操作" width="50" align="center">
         <template slot-scope="scope">
-          <el-button v-if="scope.row.state==='待发货'" @click="handleOperate(scope.row.order_id)" type="text">发货</el-button>
+          <el-button
+            v-if="scope.row.state==='待发货'"
+            @click="handleOperate(scope.row.order_id,scope.row.order_no,scope.row.express_company,scope.row.express_no)"
+            type="text">
+            发货
+          </el-button>
+          <el-button
+            v-if="scope.row.state==='待签收' || scope.row.state==='已签收'"
+            @click="showExpress(scope.row.order_id)"
+            type="text">
+            物流
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -74,11 +105,57 @@
     @current-change="changePage"
     @size-change="changeSize">
     </el-pagination>
+
+    <el-dialog id="deliveryDialog" width="400px" :visible.sync="deliveryDialogVisible">
+      <div>
+        <el-form label-width="100px" label-position="left">
+          <el-form-item label="快递公司">
+            <el-select v-model="selectedExpressCompany" placeholder="请选择">
+              <el-option
+                v-for="item in computed_express_options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="快递单号">
+            <el-input v-model="selectedExpressNo" type="number"></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="deliveryDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="confirmDelivery">确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog id="expressDialog" width="600px" :visible.sync="expressDialogVisible">
+      <div v-if="expressInfo">
+        <p>物流公司：{{expressInfo.express_company}}</p>
+        <p>物流单号：{{expressInfo.express_no}}</p>
+        <div v-if="expressInfo.express_traces.length">
+          <p>物流信息：</p>
+          <el-timeline>
+            <el-timeline-item
+              v-for="(item, index) in expressInfo.express_traces"
+              :key="index"
+              :timestamp="item.AcceptStation">
+              {{item.AcceptTime}}
+            </el-timeline-item>
+          </el-timeline>
+        </div>
+        <p v-else>暂无物流信息</p>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="expressDialogVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {getOrderList, getOrderInfo, saveOrderInfo, getOrderExport} from '@/api';
+import {getOrderList, getOrderInfo, saveOrderInfo, getOrderExport, getExpressCompany, sendExpress} from '@/api';
 import {appId, exportXLSX, getStamp} from '@/utils';
 
 const tableHeadName = {
@@ -93,17 +170,28 @@ const tableHeadName = {
   order_no: '订单编号',
   trade_no: '交易流水号',
   vip_no: '会员编号',
+  package_info: '订单信息',
   total_fee: '订单金额',
   is_pay: '支付状态',
   state: '订单状态',
   buyer_msg: '买家留言',
-  order_time: '下单时间'
+  order_time: '下单时间',
+  member_name: '会员姓名',
+  pay_time: '支付时间'
 };
 
 export default {
   data () {
     return {
       tableHeight: document.getElementById(appId).clientHeight - 120 - 50 - 50,
+      deliveryDialogVisible: false,
+      expressDialogVisible: false,
+      expressInfo: null,
+      selectedOrderId: '',
+      selectedOrderNo: '',
+      selectedExpressCompany: '',
+      selectedExpressNo: '',
+      express_options: [],
       list: [],
       pagination: {
         total: 0,
@@ -129,20 +217,35 @@ export default {
       },
       expandKeys: [],
       expandId: '',
-      updateExclude: ['create_by','create_time','member_id','modify_by','modify_time','order_id','order_no','trade_no','vip_no','total_fee','is_pay','state','pay_time','buyer_msg']
+      updateExclude: ['create_by','create_time','member_id','modify_by','modify_time','order_no','trade_no','vip_no','total_fee','is_pay','state','pay_time','buyer_msg', 'is_subscribe_push', 'subscribe_time', 'express_traces', 'confirm_receipt_time', 'confirm_receipt_by', 'package_info']
     }
   },
   computed: {
     pageIndex() {
       return this.pagination.page - 1;
+    },
+    computed_express_options() {
+      return this.express_options.map(item => {
+        return {
+          value: item,
+          label: item
+        }
+      });
     }
   },
   created() {
+    this.getExpressCompany();
     this.getOrderList();
   },
   methods: {
+    getExpressCompany() {
+      this.$setLoadingTarget(document.body);
+      getExpressCompany().then(data => {
+        this.express_options = ['中通速递', '韵达快递'].concat(data.data.filter(i => i !== '中通速递' && i !== '韵达快递'));
+      });
+    },
     getOrderList() {
-      this.$setLoadingTarget('#nodeOrderTable');
+      this.$setLoadingTarget(document.body);
       getOrderList({
         keyword: this.keyword,
         is_pay: this.selectedPayState,
@@ -216,19 +319,40 @@ export default {
         }
       }
     },
-    handleOperate(order_id) {
-      saveOrderInfo({
-        state: '待签收'
+    handleOperate(order_id, order_no, express_company, express_no) {
+      this.selectedOrderId = order_id;
+      this.selectedOrderNo = order_no;
+      this.selectedExpressCompany = express_company;
+      this.selectedExpressNo = express_no;
+      this.deliveryDialogVisible = true;
+    },
+    confirmDelivery() {
+      this.$setLoadingTarget('#deliveryDialog .el-dialog');
+      sendExpress({
+        express_company: this.selectedExpressCompany,
+        express_no: this.selectedExpressNo,
+        order_id: this.selectedOrderId,
+        order_no: this.selectedOrderNo
       }).then(data => {
         if (data.code === 1) {
-          const row = this.list[this.pageIndex].find(item => item.order_id === order_id);
+          const row = this.list[this.pageIndex].find(item => item.order_id === this.selectedOrderId);
           if (row instanceof Object) {
             row.state = '待签收';
+            row.express_company = this.selectedExpressCompany;
+            row.express_no = this.selectedExpressNo;
             row.detail.state = '待签收';
+            row.detail.express_company = this.selectedExpressCompany;
+            row.detail.express_no = this.selectedExpressNo;
           }
+          this.deliveryDialogVisible = false;
           this.$message({
             message: '发货成功'
           });
+        } else {
+          this.$message({
+            message: data.msg,
+            type: 'error'
+          })
         }
       });
     },
@@ -249,6 +373,22 @@ export default {
         }
       });
     },
+    showExpress(order_id) {
+      this.expressDialogVisible = true;
+      this.$setLoadingTarget('#expressDialog')
+      getOrderInfo({
+        order_id
+      }).then(data => {
+        if (data.code === 1) {
+          this.expressInfo = data.data;
+        } else {
+          this.$message({
+            type: 'error',
+            message: data.msg
+          });
+        }
+      });
+    },
     updateOrder() {
       this.$confirm('更新数据后不能复原，确定要更新？').then(() => {
         const expandRow = this.list[this.pageIndex].find(item => item.order_id === this.expandId);
@@ -257,6 +397,7 @@ export default {
         this.updateExclude.forEach(item => {
           delete params[item];
         })
+
         this.$setLoadingTarget('#nodeOrderTable');
         saveOrderInfo(params).then(data => {
           let message = data.msg;
@@ -292,10 +433,24 @@ export default {
             const newItem = Object.create(null);
             for (let i in item) {
               const key = tableHeadName[i];
-              if (key !== undefined) {
-                newItem[key] = item[i];
+              if (i === 'package_info') {
+                let package_info_data = '';
+                item[i].forEach(x => {
+                  let product_info_data = '';
+                  x.product_list.forEach(y => {
+                    product_info_data += `${y.product_name}*${y.qty} `;
+                  });
+
+                  package_info_data += `${x.package_name}（${product_info_data}）；`;
+                });
+
+                newItem[key] = package_info_data;
               } else {
-                newItem[i] = item[i];
+                if (key !== undefined) {
+                  newItem[key] = item[i];
+                } else {
+                  newItem[i] = item[i];
+                }
               }
             }
             return newItem;
@@ -339,5 +494,55 @@ export default {
 .el-pagination {
   text-align: center;
   margin-top: 18px;
+}
+
+.el-form--inline {
+  /deep/ .el-form-item__content {
+    width: 200px;
+  }
+}
+
+.el-dialog .el-select {
+  width: 100%;
+}
+
+.el-timeline {
+  padding-inline-start: 10px;
+  margin-top: 20px;
+  /deep/ .el-timeline-item__timestamp {
+    line-height: 1.4;
+  }
+}
+
+#expressDialog {
+  /deep/ .el-dialog__body {
+    max-height: 40vh;
+    overflow: auto;
+  }
+}
+
+.package_inner {
+  display: flex;
+  .package_left {
+    flex: none;
+  }
+  .package_right {
+    flex: auto;
+    .product_inner {
+      display: flex;
+      align-items: center;
+      .product_left {
+        flex: auto;
+      }
+      .product_right {
+        padding-left: 20px;
+        text-align: right;
+        flex: none;
+      }
+    }
+  }
+  & + .package_inner {
+    margin-top: 10px;
+  }
 }
 </style>

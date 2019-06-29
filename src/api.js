@@ -6,23 +6,25 @@ let loading = null;
 
 axios.defaults.withCredentials = true;
 if (location.hostname === 'localhost' || location.hostname === '192.168.3.27') {
-  axios.defaults.baseURL = 'https://platform.wxmall.org.cn';
+  axios.defaults.baseURL = 'https://platform.wchev.com';
 } else {
   axios.defaults.baseURL = location.origin;
 }
 
 axios.interceptors.request.use((config) => {
-  loading = Loading.service({
-    target: store.state.loadingTarget,
-    lock: true
-  });
+  if (store.state.loadingTarget) {
+    loading = Loading.service({
+      target: store.state.loadingTarget,
+      lock: true
+    });
+  }
   return config;
 }, (error) => {
   return Promise.reject(error);
 });
 
 axios.interceptors.response.use((response) => {
-  loading.close();
+  loading && loading.close();
   if (response.data instanceof Object && response.data.code === 401) {
     instance.$router.replace({name: 'login'});
     return false;
@@ -30,7 +32,7 @@ axios.interceptors.response.use((response) => {
 
   return response.data;
 }, (error) => {
-  loading.close();
+  loading && loading.close();
   Message.error({
     message: error
   });
@@ -179,4 +181,14 @@ export const getOrderExport = ({keyword, is_pay, state}) => {
       state
     }
   });
+};
+
+// 获取物流公司
+export const getExpressCompany = () => {
+  return axios.get('/order/list_express_company');
+};
+
+// 发货
+export const sendExpress = (params) => {
+  return axios.post('/order/send_express', params);
 };

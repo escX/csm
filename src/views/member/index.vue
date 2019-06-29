@@ -143,7 +143,7 @@ export default {
       },
       expandKeys: [],
       expandId: '',
-      updateExclude: ['create_by','head_image_url','member_id','member_key','modify_by','modify_time','openid','vip_no','member_state','create_time']
+      updateExclude: ['create_by','head_image_url','member_key','modify_by','modify_time','openid','vip_no','member_state','create_time']
     }
   },
   computed: {
@@ -169,7 +169,7 @@ export default {
               ...item,
               detail: {}
             }
-          });
+          }).reverse();
           this.pagination.total = Number(data.data.total);
           this.$forceUpdate();
         }
